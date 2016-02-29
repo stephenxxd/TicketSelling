@@ -11,7 +11,6 @@ namespace tickets
     {
         public static  int STOPS = 7;
         public static int SEATS = 10;
-        public static bool SellOut = false;
 
 
         public static TotalSelling ToSell = new TotalSelling();
@@ -20,7 +19,7 @@ namespace tickets
             Init();
 
             var process = new Process(ToSell);
-            int i = 0,j=0;
+            int i = 0;
             while (i++<50)
             {
                  
@@ -44,18 +43,7 @@ namespace tickets
                 }
             }
 
-            //j = 0;
-            //while (!ToSell.SellOut)
-            //{
-            //    var t1 = new Thread(process.GenerateTicket);
-            //    t1.Start();
-
-            //    while (j++ < 3)
-            //    {
-            //        var t2 = new Thread(process.ProcessTicket);
-            //        t2.Start();
-            //    }
-            //}
+           
             
             Console.ReadLine();
         }
