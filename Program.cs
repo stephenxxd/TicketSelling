@@ -14,40 +14,64 @@ namespace tickets
         public static bool SellOut = false;
 
 
-        public static List<TicketsPerSeat> Sellings = new List<TicketsPerSeat>();
+        public static TotalSelling ToSell = new TotalSelling();
         static void Main(string[] args)
         {
             Init();
 
-            var process = new Process(Sellings);
-            int i = 0;
+            var process = new Process(ToSell);
+            int i = 0,j=0;
             while (i++<50)
             {
+                 
                 var t = new Thread(process.GenerateTicket);
                 t.Start();
 
-                if (!Process.SellOut)
+                var t2 = new Thread(process.ProcessTicket);
+                t2.Start();
+
+            }
+
+            lock (ToSell)
+            {
+                while (!ToSell.SellOut)
                 {
-                    var t1 = new Thread(process.GenerateTicket);
-                    t1.Start();
+                    var t = new Thread(process.GenerateTicket);
+                    t.Start();
 
                     var t2 = new Thread(process.ProcessTicket);
                     t2.Start();
                 }
             }
+
+            //j = 0;
+            //while (!ToSell.SellOut)
+            //{
+            //    var t1 = new Thread(process.GenerateTicket);
+            //    t1.Start();
+
+            //    while (j++ < 3)
+            //    {
+            //        var t2 = new Thread(process.ProcessTicket);
+            //        t2.Start();
+            //    }
+            //}
             
             Console.ReadLine();
         }
 
         static void Init()
         {
+            ToSell.Sellings = new List<TicketsPerSeat>();
             for (int i = 0; i < SEATS; i++)
             {
                 var seatSelling = new TicketsPerSeat();
                 seatSelling.SeatSerial = i + 1;
                 seatSelling.Selled = new List<Ticket>();
-                Sellings.Add(seatSelling);
+                ToSell.Sellings.Add(seatSelling);
             }
+
+            ToSell.SellOut = false;
         }
  
         

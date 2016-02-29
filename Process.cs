@@ -19,7 +19,6 @@ namespace tickets
         readonly object _lock;
         private static Queue<Ticket> queue = new Queue<Ticket>();
         public static int ticketSelled = 0;
-        public static bool SellOut = false;
         public void GenerateTicket()
         {
             lock (_lock)
@@ -43,7 +42,8 @@ namespace tickets
         {
             lock (_lock)
             {
-                if(SellOut) return;
+                var toSell = _lock as TotalSelling;
+                if(toSell.SellOut) return;
                 while (queue.Count == 0)
                 {
                     // This releases _lock, and block itself, only after reacquiring it
@@ -51,7 +51,8 @@ namespace tickets
                     Monitor.Wait(_lock);
                 }
 
-                var sellings = _lock as List<TicketsPerSeat>;  
+                
+                var sellings = toSell.Sellings;  
 
                 var processItem = queue.Dequeue();
 
@@ -62,31 +63,36 @@ namespace tickets
                     var targetSeat = assignableSeats[0];
                     targetSeat.Selled.Add(processItem);
                     ticketSelled++;
+                    toSell.UnservicableCount = 0;
+                }
+                else
+                {
+                    toSell.UnservicableCount++;
                 }
                 
                 var availableSeats = sellings.Where(s => s.MinAvailableStop <= (Program.STOPS - 1)).ToList();
-                if (!availableSeats.Any())
+                if (!availableSeats.Any() || toSell.UnservicableCount > 10)
                 {
-                    SellOut = true;
+                    toSell.SellOut = true;
                     Console.WriteLine("A total of " + ticketSelled + " tickets were sold");
-                    Console.WriteLine("Seats - " + Program.SEATS + " Stops - "+Program.STOPS);
+                    Console.WriteLine("Seats : " + Program.SEATS + " Stops : "+Program.STOPS);
                     Console.WriteLine();
 
-                    var totalCells = Program.STOPS*Program.SEATS;
+                    var totalCells = (Program.STOPS)*Program.SEATS;
                     var selledCells = 0;
 
-                    foreach (var selling in Program.Sellings)
+                    foreach (var selling in Program.ToSell.Sellings)
                     {
                         Console.WriteLine("-------------- for seat " + selling.SeatSerial);
                         foreach (var ticket in selling.Selled)
                         {
                             Console.WriteLine("Ticket start " + ticket.Start + " destination " + ticket.End);
-                            selledCells += ticket.End - ticket.Start + 1;
+                            selledCells += ticket.End - ticket.Start ;
                         }
                         Console.WriteLine();
                     }
 
-                    Console.WriteLine("Vacancy rate - " + (1- selledCells/(totalCells+0.0)));
+                    Console.WriteLine("Vacancy rate : " + (1- selledCells/(totalCells+0.0)));
                 }
  
             }

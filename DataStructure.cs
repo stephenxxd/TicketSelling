@@ -6,6 +6,13 @@ using System.Threading.Tasks;
 
 namespace tickets
 {
+    public class TotalSelling
+    {
+        public List<TicketsPerSeat> Sellings { get; set; }
+        public bool SellOut { get; set; }
+        
+        public int UnservicableCount { get; set; }  // the count for continuingly not servicable, if exceed the set threshold, assuming no tickets could be selled any more.
+    }
     public class TicketsPerSeat :IComparable
     {
         public List<Ticket> Selled { get; set; }
